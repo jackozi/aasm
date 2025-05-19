@@ -19,7 +19,10 @@ module AASM
         aasm_write_state_attribute state, name
 
         success = if aasm_skipping_validations(name)
-          aasm_update_column(attribute_name, aasm_raw_attribute_value(state, name))
+          aasm_update_columns({
+            attribute_name => aasm_raw_attribute_value(state, name),
+            "#{aasm_raw_attribute_value(state, name)}_at" => ::Time.current
+          })
         else
           aasm_save
         end

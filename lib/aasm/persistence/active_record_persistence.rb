@@ -95,6 +95,14 @@ module AASM
           end        
         end
 
+        def aasm_update_columns(hash)
+          if self.class.composite_primary_key?
+            self.class.unscoped.where(self.class.primary_key.zip(self.id).to_h).update_all(hash) == 1
+          else
+            self.class.unscoped.where(self.class.primary_key => self.id).update_all(hash) == 1
+          end        
+        end
+
         def aasm_read_attribute(name)
           read_attribute(name)
         end
