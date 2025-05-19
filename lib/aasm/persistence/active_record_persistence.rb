@@ -88,7 +88,11 @@ module AASM
         end
 
         def aasm_update_column(attribute_name, value)
-          self.class.unscoped.where(self.class.primary_key => self.id).update_all(attribute_name => value) == 1
+          if self.class.composite_primary_key?
+            self.class.unscoped.where(self.class.primary_key.zip(self.id).to_h).update_all(attribute_name => value) == 1
+          else
+            self.class.unscoped.where(self.class.primary_key => self.id).update_all(attribute_name => value) == 1
+          end        
         end
 
         def aasm_read_attribute(name)
