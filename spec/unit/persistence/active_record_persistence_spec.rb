@@ -124,7 +124,7 @@ if defined?(ActiveRecord)
 
           it "should raise an error for transitions" do
             if ActiveRecord.gem_version >= Gem::Version.new('7.1.0')
-              expect{with_enum_without_column.send(:view)}.to raise_error(RuntimeError, /Unknown enum attribute 'status'/)
+              expect{with_enum_without_column.send(:view)}.to raise_error(RuntimeError, /Undeclared attribute type for enum 'status'/)
             else
               expect{with_enum_without_column.send(:view)}.to raise_error(NoMethodError, /undefined method .status./)
             end
@@ -705,6 +705,18 @@ if defined?(ActiveRecord)
                 rescue => ignored
                 end
               end.to change { validator.send("#{event_type}_transaction_performed_on_fail") }.from(nil).to(true)
+              expect(validator).to_not be_running
+            end
+
+            it "should fire :#{event_type}_transaction if transaction failed w/ kwarg" do
+              validator = Validator.create(:name => 'name')
+              expect do
+                begin
+                  validator.fail_with_reason!(reason: 'reason')
+                rescue => ignored
+                  expect(ignored).not_to be_instance_of(ArgumentError)
+                end
+              end.to change { validator.send("#{event_type}_transaction_performed_on_fail_with_reason") }.from(nil).to('reason')
               expect(validator).to_not be_running
             end
 
